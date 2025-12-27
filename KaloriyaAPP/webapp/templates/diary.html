@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Дневник - KaloriyaBot</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📖 Дневник питания</h1>
+            <p id="date-display">Сегодня</p>
+        </div>
+
+        <!-- Сводка за день -->
+        <div class="card" id="summary-card">
+            <div class="loading">
+                <div class="spinner"></div>
+            </div>
+        </div>
+
+        <!-- Записи по приёмам пищи -->
+        <div id="meals-container">
+            <div class="loading">
+                <div class="spinner"></div>
+                <div class="loading-text">Загрузка записей...</div>
+            </div>
+        </div>
+
+        <button class="btn btn-primary mt-16" onclick="location.href='/camera'">
+            📸 Добавить еду
+        </button>
+    </div>
+
+    <script src="/static/js/app.js"></script>
+    <script>
+        const app = window.KaloriyaApp;
+
+        async function loadDiary() {
+            try {
+                // Load today stats
+                const stats = await app.getTodayStats();
+                renderSummary(stats);
+
+                // Load food entries
+                const entries = await app.getTodayFood();
+                renderEntries(entries);
+
+            } catch (error) {
+                console.error('Failed to load diary:', error);
+                app.showError(document.getElementById('meals-container'), 'Не удалось загрузить данные');
+            }
+        }
+
+        function renderSummary(stats) {
+            const container = document.getElementById('summary-card');
+            const percent = stats.calories_percent || 0;
+
+            container.innerHTML = `
+                <div class="progress-container">
+                    <div class="progress-header">
+                        <span class="progress-label">🔥 Калории</span>
+                        <span class="progress-value">${stats.total_calories} / ${stats.target_calories} ккал</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill calories" style="width: ${percent}%"></div>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 12px; font-size: 12px; text-align: center;">
+                    <div>
+                        <div style="font-weight: 600;">🥩 ${Math.round(stats.total_protein)}г</div>
+                        <div style="color: var(--tg-theme-hint-color);">из ${stats.target_protein}г</div>
+                    </div>
+                    <div>
+                        <div style="font-weight: 600;">🍞 ${Math.round(stats.total_carbs)}г</div>
+                        <div style="color: var(--tg-theme-hint-color);">из ${stats.target_carbs}г</div>
+                    </div>
+                    <div>
+                        <div style="font-weight: 600;">🧈 ${Math.round(stats.total_fat)}г</div>
+                        <div style="color: var(--tg-theme-hint-color);">из ${stats.target_fat}г</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderEntries(entries) {
+            const container = document.getElementById('meals-container');
+
+            if (!entries || entries.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">🍽</div>
+                        <div class="empty-state-text">Нет записей за сегодня<br>Добавь первый приём пищи!</div>
+                    </div>
+                `;
+                return;
+            }
+
+            // Group by meal type
+            const mealGroups = {
+                breakfast: { name: '🌅 Завтрак', entries: [] },
+                lunch: { name: '☀️ Обед', entries: [] },
+                snack: { name: '🍪 Перекус', entries: [] },
+                dinner: { name: '🌆 Ужин', entries: [] },
+                other: { name: '🍽 Другое', entries: [] }
+            };
+
+            entries.forEach(entry => {
+                const type = entry.meal_type || 'other';
+                if (mealGroups[type]) {
+                    mealGroups[type].entries.push(entry);
+                } else {
+                    mealGroups.other.entries.push(entry);
+                }
+            });
+
+            let html = '';
+
+            Object.values(mealGroups).forEach(group => {
+                if (group.entries.length === 0) return;
+
+                const totalCal = group.entries.reduce((sum, e) => sum + e.calories, 0);
+
+                html += `
+                    <div class="card">
+                        <div class="card-title" style="justify-content: space-between;">
+                            <span>${group.name}</span>
+                            <span style="color: var(--calories-color);">${totalCal} ккал</span>
+                        </div>
+                        <ul class="food-list">
+                `;
+
+                group.entries.forEach(entry => {
+                    html += `
+                        <li class="food-entry" data-id="${entry.id}">
+                            <div class="food-entry-icon">${getMealIcon(entry.meal_type)}</div>
+                            <div class="food-entry-info">
+                                <div class="food-entry-name">${entry.food_name_ru || entry.food_name}</div>
+                                <div class="food-entry-time">${formatTime(entry.logged_at)}</div>
+                            </div>
+                            <div class="food-entry-calories">${entry.calories}</div>
+                        </li>
+                    `;
+                });
+
+                html += `
+                        </ul>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        function getMealIcon(type) {
+            const icons = {
+                breakfast: '🥐',
+                lunch: '🍲',
+                dinner: '🍽',
+                snack: '🍎'
+            };
+            return icons[type] || '🍴';
+        }
+
+        function formatTime(isoString) {
+            const date = new Date(isoString);
+            return date.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+        }
+
+        // Set today's date
+        const today = new Date();
+        document.getElementById('date-display').textContent = today.toLocaleDateString('ru-RU', {
+            weekday: 'long',
+            day: 'numeric',
+            month: 'long'
+        });
+
+        // Back button
+        app.showTelegramBackButton(() => {
+            if (window.Telegram?.WebApp) {
+                Telegram.WebApp.close();
+            } else {
+                location.href = '/';
+            }
+        });
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', loadDiary);
+    </script>
+</body>
+</html>

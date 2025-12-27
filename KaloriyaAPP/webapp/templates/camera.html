@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Добавить еду - KaloriyaBot</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Step 1: Camera / Upload -->
+        <div id="step-camera">
+            <div class="header">
+                <h1>📸 Сфотографируй еду</h1>
+                <p>Или выбери фото из галереи</p>
+            </div>
+
+            <div class="camera-container">
+                <video id="camera-video" autoplay playsinline></video>
+                <img id="camera-preview" class="hidden">
+                <div class="camera-overlay">
+                    <button class="camera-btn" onclick="switchToUpload()">🖼</button>
+                    <button class="camera-btn capture" id="capture-btn" onclick="capturePhoto()">📷</button>
+                    <button class="camera-btn hidden" id="retake-btn" onclick="retakePhoto()">🔄</button>
+                </div>
+            </div>
+
+            <input type="file" id="file-input" accept="image/*" capture="environment" class="hidden">
+
+            <div id="upload-btn-container">
+                <button class="btn btn-secondary" onclick="document.getElementById('file-input').click()">
+                    📁 Выбрать из галереи
+                </button>
+            </div>
+        </div>
+
+        <!-- Step 2: Analyzing -->
+        <div id="step-analyzing" class="hidden">
+            <div class="loading" style="min-height: 300px;">
+                <div class="spinner"></div>
+                <div class="loading-text">🔍 Анализирую фото...</div>
+            </div>
+        </div>
+
+        <!-- Step 3: Result -->
+        <div id="step-result" class="hidden">
+            <div class="header">
+                <h1>🍽 Результат</h1>
+            </div>
+
+            <img id="result-image" style="width: 100%; border-radius: 16px; margin-bottom: 16px;">
+
+            <div class="food-result">
+                <div class="food-name" id="result-name">Загрузка...</div>
+                <div class="food-portion" id="result-portion"></div>
+                <div class="food-calories" id="result-calories">0</div>
+                <div class="food-calories-label">ккал</div>
+
+                <div class="macros-grid">
+                    <div class="macro-item">
+                        <div class="macro-icon">🥩</div>
+                        <div class="macro-value" id="result-protein">0</div>
+                        <div class="macro-label">Белки (г)</div>
+                    </div>
+                    <div class="macro-item">
+                        <div class="macro-icon">🍞</div>
+                        <div class="macro-value" id="result-carbs">0</div>
+                        <div class="macro-label">Углеводы (г)</div>
+                    </div>
+                    <div class="macro-item">
+                        <div class="macro-icon">🧈</div>
+                        <div class="macro-value" id="result-fat">0</div>
+                        <div class="macro-label">Жиры (г)</div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="result-notes" class="card hidden" style="margin-top: 16px;">
+                <div id="result-notes-text"></div>
+            </div>
+
+            <div class="card" style="margin-top: 16px;">
+                <div class="card-title">🍽 Тип приёма пищи</div>
+                <div class="meal-selector">
+                    <div class="meal-option" data-meal="breakfast" onclick="selectMeal('breakfast')">
+                        <div class="meal-option-icon">🌅</div>
+                        <div class="meal-option-label">Завтрак</div>
+                    </div>
+                    <div class="meal-option selected" data-meal="lunch" onclick="selectMeal('lunch')">
+                        <div class="meal-option-icon">☀️</div>
+                        <div class="meal-option-label">Обед</div>
+                    </div>
+                    <div class="meal-option" data-meal="dinner" onclick="selectMeal('dinner')">
+                        <div class="meal-option-icon">🌆</div>
+                        <div class="meal-option-label">Ужин</div>
+                    </div>
+                    <div class="meal-option" data-meal="snack" onclick="selectMeal('snack')">
+                        <div class="meal-option-icon">🍪</div>
+                        <div class="meal-option-label">Перекус</div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px;">
+                <button class="btn btn-secondary" onclick="retakePhoto()">
+                    🔄 Переснять
+                </button>
+                <button class="btn btn-success" onclick="saveFood()">
+                    ✅ Добавить
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/app.js"></script>
+    <script>
+        const app = window.KaloriyaApp;
+        let currentPhotoBase64 = null;
+        let currentFoodData = null;
+        let selectedMealType = 'lunch';
+
+        // Auto-detect meal type based on time
+        function detectMealType() {
+            const hour = new Date().getHours();
+            if (hour >= 6 && hour < 11) return 'breakfast';
+            if (hour >= 11 && hour < 15) return 'lunch';
+            if (hour >= 15 && hour < 18) return 'snack';
+            return 'dinner';
+        }
+
+        async function initCamera() {
+            const video = document.getElementById('camera-video');
+            const success = await app.startCamera(video);
+
+            if (!success) {
+                // Camera not available, show upload only
+                document.querySelector('.camera-container').style.display = 'none';
+                document.getElementById('upload-btn-container').innerHTML = `
+                    <button class="btn btn-primary" onclick="document.getElementById('file-input').click()">
+                        📁 Выбрать фото из галереи
+                    </button>
+                `;
+            }
+        }
+
+        function capturePhoto() {
+            const video = document.getElementById('camera-video');
+            const preview = document.getElementById('camera-preview');
+
+            currentPhotoBase64 = app.capturePhoto(video);
+
+            // Show preview
+            preview.src = 'data:image/jpeg;base64,' + currentPhotoBase64;
+            preview.classList.remove('hidden');
+            video.classList.add('hidden');
+
+            document.getElementById('capture-btn').classList.add('hidden');
+            document.getElementById('retake-btn').classList.remove('hidden');
+
+            app.hapticFeedback('medium');
+
+            // Analyze after short delay
+            setTimeout(analyzePhoto, 500);
+        }
+
+        function retakePhoto() {
+            const video = document.getElementById('camera-video');
+            const preview = document.getElementById('camera-preview');
+
+            preview.classList.add('hidden');
+            video.classList.remove('hidden');
+
+            document.getElementById('capture-btn').classList.remove('hidden');
+            document.getElementById('retake-btn').classList.add('hidden');
+
+            showStep('camera');
+            currentPhotoBase64 = null;
+            currentFoodData = null;
+        }
+
+        function switchToUpload() {
+            document.getElementById('file-input').click();
+        }
+
+        document.getElementById('file-input').addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                currentPhotoBase64 = event.target.result.split(',')[1];
+
+                // Show in preview
+                const preview = document.getElementById('camera-preview');
+                const video = document.getElementById('camera-video');
+
+                preview.src = event.target.result;
+                preview.classList.remove('hidden');
+                video.classList.add('hidden');
+
+                document.getElementById('capture-btn').classList.add('hidden');
+                document.getElementById('retake-btn').classList.remove('hidden');
+
+                analyzePhoto();
+            };
+            reader.readAsDataURL(file);
+        });
+
+        async function analyzePhoto() {
+            showStep('analyzing');
+            app.stopCamera();
+
+            try {
+                currentFoodData = await app.analyzeFood(currentPhotoBase64);
+                showResult();
+            } catch (error) {
+                console.error('Analysis error:', error);
+                app.showToast('Ошибка анализа');
+                showStep('camera');
+                initCamera();
+            }
+        }
+
+        function showResult() {
+            showStep('result');
+
+            // Show image
+            document.getElementById('result-image').src = 'data:image/jpeg;base64,' + currentPhotoBase64;
+
+            // Show food data
+            document.getElementById('result-name').textContent =
+                currentFoodData.food_name_ru || currentFoodData.food_name;
+            document.getElementById('result-portion').textContent =
+                `📏 ${currentFoodData.portion_description}`;
+            document.getElementById('result-calories').textContent = currentFoodData.calories;
+            document.getElementById('result-protein').textContent = Math.round(currentFoodData.protein);
+            document.getElementById('result-carbs').textContent = Math.round(currentFoodData.carbs);
+            document.getElementById('result-fat').textContent = Math.round(currentFoodData.fat);
+
+            // Show notes if any
+            if (currentFoodData.health_notes) {
+                document.getElementById('result-notes').classList.remove('hidden');
+                document.getElementById('result-notes-text').textContent = currentFoodData.health_notes;
+            }
+
+            // Auto-select meal type
+            selectedMealType = detectMealType();
+            selectMeal(selectedMealType);
+
+            app.hapticFeedback('success');
+        }
+
+        function selectMeal(mealType) {
+            selectedMealType = mealType;
+
+            document.querySelectorAll('.meal-option').forEach(el => {
+                el.classList.remove('selected');
+            });
+            document.querySelector(`[data-meal="${mealType}"]`).classList.add('selected');
+
+            app.hapticFeedback('light');
+        }
+
+        async function saveFood() {
+            try {
+                await app.addFoodEntry({
+                    food_name: currentFoodData.food_name,
+                    food_name_ru: currentFoodData.food_name_ru,
+                    calories: currentFoodData.calories,
+                    protein: currentFoodData.protein,
+                    carbs: currentFoodData.carbs,
+                    fat: currentFoodData.fat,
+                    portion_size: currentFoodData.portion_size,
+                    portion_description: currentFoodData.portion_description,
+                    meal_type: selectedMealType
+                });
+
+                app.hapticFeedback('success');
+                app.showToast('✅ Добавлено!');
+
+                // Close or go back
+                setTimeout(() => {
+                    if (window.Telegram?.WebApp) {
+                        Telegram.WebApp.close();
+                    } else {
+                        location.href = '/';
+                    }
+                }, 1000);
+
+            } catch (error) {
+                console.error('Save error:', error);
+                app.showToast('Ошибка сохранения');
+            }
+        }
+
+        function showStep(step) {
+            document.getElementById('step-camera').classList.add('hidden');
+            document.getElementById('step-analyzing').classList.add('hidden');
+            document.getElementById('step-result').classList.add('hidden');
+            document.getElementById(`step-${step}`).classList.remove('hidden');
+        }
+
+        // Back button
+        app.showTelegramBackButton(() => {
+            app.stopCamera();
+            if (window.Telegram?.WebApp) {
+                Telegram.WebApp.close();
+            } else {
+                location.href = '/';
+            }
+        });
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            initCamera();
+            selectedMealType = detectMealType();
+        });
+
+        // Cleanup on page leave
+        window.addEventListener('beforeunload', () => {
+            app.stopCamera();
+        });
+    </script>
+</body>
+</html>

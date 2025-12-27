@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Профиль - KaloriyaBot</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>👤 Мой профиль</h1>
+        </div>
+
+        <div id="profile-content">
+            <div class="loading">
+                <div class="spinner"></div>
+                <div class="loading-text">Загрузка профиля...</div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/app.js"></script>
+    <script>
+        const app = window.KaloriyaApp;
+
+        async function loadProfile() {
+            try {
+                const profile = await app.loadUserProfile();
+                renderProfile(profile);
+            } catch (error) {
+                console.error('Failed to load profile:', error);
+                app.showError(document.getElementById('profile-content'), 'Не удалось загрузить профиль');
+            }
+        }
+
+        function renderProfile(profile) {
+            const container = document.getElementById('profile-content');
+
+            const goalNames = {
+                'lose': '🏃 Похудение',
+                'maintain': '⚖️ Поддержание',
+                'gain': '💪 Набор массы'
+            };
+
+            const activityNames = {
+                'sedentary': '🪑 Сидячий',
+                'light': '🚶 Лёгкая',
+                'moderate': '🏃 Умеренная',
+                'active': '🏋️ Высокая',
+                'very_active': '⚡ Очень высокая'
+            };
+
+            const genderNames = {
+                'male': '👨 Мужской',
+                'female': '👩 Женский'
+            };
+
+            container.innerHTML = `
+                <!-- Физические данные -->
+                <div class="card">
+                    <div class="card-title">📊 Физические данные</div>
+
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
+                        <div style="text-align: center; padding: 12px; background: var(--tg-theme-bg-color); border-radius: 12px;">
+                            <div style="font-size: 24px; font-weight: 700;">${profile.weight || '—'}</div>
+                            <div style="color: var(--tg-theme-hint-color); font-size: 12px;">Вес (кг)</div>
+                        </div>
+                        <div style="text-align: center; padding: 12px; background: var(--tg-theme-bg-color); border-radius: 12px;">
+                            <div style="font-size: 24px; font-weight: 700;">${profile.height || '—'}</div>
+                            <div style="color: var(--tg-theme-hint-color); font-size: 12px;">Рост (см)</div>
+                        </div>
+                        <div style="text-align: center; padding: 12px; background: var(--tg-theme-bg-color); border-radius: 12px;">
+                            <div style="font-size: 24px; font-weight: 700;">${profile.age || '—'}</div>
+                            <div style="color: var(--tg-theme-hint-color); font-size: 12px;">Возраст</div>
+                        </div>
+                        <div style="text-align: center; padding: 12px; background: var(--tg-theme-bg-color); border-radius: 12px;">
+                            <div style="font-size: 24px; font-weight: 700;">${genderNames[profile.gender] || '—'}</div>
+                            <div style="color: var(--tg-theme-hint-color); font-size: 12px;">Пол</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Цель и активность -->
+                <div class="card">
+                    <div class="card-title">🎯 Цель и активность</div>
+
+                    <div style="padding: 12px; background: var(--tg-theme-bg-color); border-radius: 12px; margin-bottom: 12px;">
+                        <div style="font-weight: 600;">${goalNames[profile.goal] || 'Не указано'}</div>
+                        ${profile.target_weight ? `<div style="color: var(--tg-theme-hint-color); font-size: 13px;">Целевой вес: ${profile.target_weight} кг</div>` : ''}
+                    </div>
+
+                    <div style="padding: 12px; background: var(--tg-theme-bg-color); border-radius: 12px;">
+                        <div style="font-weight: 600;">${activityNames[profile.activity_level] || 'Не указано'}</div>
+                        <div style="color: var(--tg-theme-hint-color); font-size: 13px;">Уровень активности</div>
+                    </div>
+                </div>
+
+                <!-- Дневные нормы -->
+                <div class="card">
+                    <div class="card-title">📈 Дневные нормы КБЖУ</div>
+
+                    <div style="text-align: center; margin-bottom: 16px;">
+                        <div style="font-size: 48px; font-weight: 800; color: var(--calories-color);">${profile.daily_calories || '—'}</div>
+                        <div style="color: var(--tg-theme-hint-color);">ккал в день</div>
+                    </div>
+
+                    <div class="macros-grid">
+                        <div class="macro-item">
+                            <div class="macro-icon">🥩</div>
+                            <div class="macro-value">${profile.daily_protein || '—'}г</div>
+                            <div class="macro-label">Белки</div>
+                        </div>
+                        <div class="macro-item">
+                            <div class="macro-icon">🍞</div>
+                            <div class="macro-value">${profile.daily_carbs || '—'}г</div>
+                            <div class="macro-label">Углеводы</div>
+                        </div>
+                        <div class="macro-item">
+                            <div class="macro-icon">🧈</div>
+                            <div class="macro-value">${profile.daily_fat || '—'}г</div>
+                            <div class="macro-label">Жиры</div>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="btn btn-primary" onclick="location.href='/profile/setup'">
+                    ✏️ Редактировать профиль
+                </button>
+            `;
+        }
+
+        // Back button
+        app.showTelegramBackButton(() => {
+            if (window.Telegram?.WebApp) {
+                Telegram.WebApp.close();
+            } else {
+                location.href = '/';
+            }
+        });
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', loadProfile);
+    </script>
+</body>
+</html>

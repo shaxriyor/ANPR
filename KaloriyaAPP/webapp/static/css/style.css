@@ -1,0 +1,591 @@
+/* KaloriyaBot Web App Styles */
+/* Telegram Web App Theme Integration */
+
+:root {
+    --tg-theme-bg-color: #ffffff;
+    --tg-theme-text-color: #000000;
+    --tg-theme-hint-color: #999999;
+    --tg-theme-link-color: #2481cc;
+    --tg-theme-button-color: #2481cc;
+    --tg-theme-button-text-color: #ffffff;
+    --tg-theme-secondary-bg-color: #f0f0f0;
+
+    /* Custom colors */
+    --success-color: #34c759;
+    --warning-color: #ff9500;
+    --danger-color: #ff3b30;
+    --calories-color: #ff6b6b;
+    --protein-color: #4ecdc4;
+    --carbs-color: #ffe66d;
+    --fat-color: #95e1d3;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+    background-color: var(--tg-theme-bg-color);
+    color: var(--tg-theme-text-color);
+    min-height: 100vh;
+    padding-bottom: 80px;
+}
+
+.container {
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 16px;
+}
+
+/* Header */
+.header {
+    text-align: center;
+    padding: 20px 0;
+    margin-bottom: 20px;
+}
+
+.header h1 {
+    font-size: 24px;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.header p {
+    color: var(--tg-theme-hint-color);
+    font-size: 14px;
+}
+
+/* Cards */
+.card {
+    background: var(--tg-theme-secondary-bg-color);
+    border-radius: 16px;
+    padding: 16px;
+    margin-bottom: 16px;
+}
+
+.card-title {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Progress Bars */
+.progress-container {
+    margin-bottom: 12px;
+}
+
+.progress-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+    font-size: 14px;
+}
+
+.progress-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.progress-value {
+    font-weight: 600;
+}
+
+.progress-bar {
+    height: 8px;
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.3s ease;
+}
+
+.progress-fill.calories { background: var(--calories-color); }
+.progress-fill.protein { background: var(--protein-color); }
+.progress-fill.carbs { background: var(--carbs-color); }
+.progress-fill.fat { background: var(--fat-color); }
+
+/* Macros Grid */
+.macros-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-top: 16px;
+}
+
+.macro-item {
+    text-align: center;
+    padding: 12px;
+    background: var(--tg-theme-bg-color);
+    border-radius: 12px;
+}
+
+.macro-icon {
+    font-size: 20px;
+    margin-bottom: 4px;
+}
+
+.macro-value {
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.macro-label {
+    font-size: 11px;
+    color: var(--tg-theme-hint-color);
+    margin-top: 2px;
+}
+
+/* Buttons */
+.btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 14px 20px;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.1s;
+}
+
+.btn:active {
+    transform: scale(0.98);
+}
+
+.btn-primary {
+    background: var(--tg-theme-button-color);
+    color: var(--tg-theme-button-text-color);
+}
+
+.btn-secondary {
+    background: var(--tg-theme-secondary-bg-color);
+    color: var(--tg-theme-text-color);
+}
+
+.btn-success {
+    background: var(--success-color);
+    color: white;
+}
+
+.btn-danger {
+    background: var(--danger-color);
+    color: white;
+}
+
+.btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Forms */
+.form-group {
+    margin-bottom: 16px;
+}
+
+.form-label {
+    display: block;
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 8px;
+    color: var(--tg-theme-text-color);
+}
+
+.form-input {
+    width: 100%;
+    padding: 14px 16px;
+    border: 2px solid transparent;
+    border-radius: 12px;
+    background: var(--tg-theme-secondary-bg-color);
+    color: var(--tg-theme-text-color);
+    font-size: 16px;
+    transition: border-color 0.2s;
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: var(--tg-theme-button-color);
+}
+
+.form-select {
+    width: 100%;
+    padding: 14px 16px;
+    border: none;
+    border-radius: 12px;
+    background: var(--tg-theme-secondary-bg-color);
+    color: var(--tg-theme-text-color);
+    font-size: 16px;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23999' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 16px center;
+}
+
+/* Radio Buttons */
+.radio-group {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.radio-option {
+    flex: 1;
+    min-width: calc(50% - 4px);
+}
+
+.radio-option input {
+    display: none;
+}
+
+.radio-option label {
+    display: block;
+    padding: 14px;
+    text-align: center;
+    background: var(--tg-theme-secondary-bg-color);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+    font-size: 14px;
+}
+
+.radio-option input:checked + label {
+    background: var(--tg-theme-button-color);
+    color: var(--tg-theme-button-text-color);
+}
+
+.radio-option label:active {
+    transform: scale(0.98);
+}
+
+/* Camera Page */
+.camera-container {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 4/3;
+    background: #000;
+    border-radius: 16px;
+    overflow: hidden;
+    margin-bottom: 16px;
+}
+
+#camera-video, #camera-preview {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.camera-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 16px;
+    background: linear-gradient(transparent, rgba(0,0,0,0.6));
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+}
+
+.camera-btn {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    border: 3px solid white;
+    background: rgba(255,255,255,0.2);
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.camera-btn.capture {
+    width: 72px;
+    height: 72px;
+    background: white;
+}
+
+/* Food Result */
+.food-result {
+    background: var(--tg-theme-secondary-bg-color);
+    border-radius: 16px;
+    padding: 20px;
+    text-align: center;
+}
+
+.food-name {
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+
+.food-portion {
+    color: var(--tg-theme-hint-color);
+    font-size: 14px;
+    margin-bottom: 16px;
+}
+
+.food-calories {
+    font-size: 36px;
+    font-weight: 800;
+    color: var(--calories-color);
+    margin-bottom: 4px;
+}
+
+.food-calories-label {
+    font-size: 14px;
+    color: var(--tg-theme-hint-color);
+    margin-bottom: 16px;
+}
+
+/* Food Entry List */
+.food-list {
+    list-style: none;
+}
+
+.food-entry {
+    display: flex;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+
+.food-entry:last-child {
+    border-bottom: none;
+}
+
+.food-entry-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: var(--tg-theme-button-color);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    margin-right: 12px;
+}
+
+.food-entry-info {
+    flex: 1;
+}
+
+.food-entry-name {
+    font-weight: 500;
+    margin-bottom: 2px;
+}
+
+.food-entry-time {
+    font-size: 12px;
+    color: var(--tg-theme-hint-color);
+}
+
+.food-entry-calories {
+    font-weight: 600;
+    color: var(--calories-color);
+}
+
+/* Stats Chart */
+.chart-container {
+    height: 200px;
+    margin: 16px 0;
+}
+
+.day-bar {
+    display: flex;
+    align-items: flex-end;
+    gap: 4px;
+    height: 150px;
+    margin-bottom: 8px;
+}
+
+.day-bar-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.day-bar-fill {
+    width: 100%;
+    max-width: 40px;
+    background: var(--tg-theme-button-color);
+    border-radius: 4px 4px 0 0;
+    transition: height 0.3s ease;
+}
+
+.day-bar-label {
+    font-size: 11px;
+    color: var(--tg-theme-hint-color);
+    margin-top: 8px;
+}
+
+/* Recommendations */
+.recommendation {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px;
+    background: var(--tg-theme-bg-color);
+    border-radius: 12px;
+    margin-bottom: 12px;
+}
+
+.recommendation-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--warning-color);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+}
+
+.recommendation-content {
+    flex: 1;
+}
+
+.recommendation-title {
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.recommendation-message {
+    font-size: 13px;
+    color: var(--tg-theme-hint-color);
+    line-height: 1.4;
+}
+
+/* Loading Spinner */
+.loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+}
+
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid var(--tg-theme-secondary-bg-color);
+    border-top-color: var(--tg-theme-button-color);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.loading-text {
+    margin-top: 16px;
+    color: var(--tg-theme-hint-color);
+}
+
+/* Meal Type Selector */
+.meal-selector {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.meal-option {
+    padding: 12px;
+    text-align: center;
+    background: var(--tg-theme-secondary-bg-color);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.meal-option:hover {
+    background: var(--tg-theme-button-color);
+    color: var(--tg-theme-button-text-color);
+}
+
+.meal-option.selected {
+    background: var(--tg-theme-button-color);
+    color: var(--tg-theme-button-text-color);
+}
+
+.meal-option-icon {
+    font-size: 24px;
+    margin-bottom: 4px;
+}
+
+.meal-option-label {
+    font-size: 13px;
+    font-weight: 500;
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 40px 20px;
+}
+
+.empty-state-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+}
+
+.empty-state-text {
+    color: var(--tg-theme-hint-color);
+    font-size: 14px;
+}
+
+/* Toast Messages */
+.toast {
+    position: fixed;
+    bottom: 100px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--tg-theme-text-color);
+    color: var(--tg-theme-bg-color);
+    padding: 12px 24px;
+    border-radius: 24px;
+    font-size: 14px;
+    font-weight: 500;
+    z-index: 1000;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.toast.show {
+    opacity: 1;
+}
+
+/* Utility Classes */
+.hidden { display: none !important; }
+.text-center { text-align: center; }
+.mt-16 { margin-top: 16px; }
+.mb-16 { margin-bottom: 16px; }
+.mb-8 { margin-bottom: 8px; }
+
+/* Safe Area for iOS */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+    body {
+        padding-bottom: calc(80px + env(safe-area-inset-bottom));
+    }
+}
